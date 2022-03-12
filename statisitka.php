@@ -9,12 +9,11 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-
-    <title><? echo "Список самых прогуливающих студентов";?></title>
+<title><? echo "Список самых прогуливающих студентов";?></title>
   </head>
   <body>
       <div class="container">
-        <h1><? echo "Список самых прогуливающих студентов";?></h1>
+        <h1><? echo "Список прогуливающих студентов";?></h1>
 
           <div class="row">
               <div class="col-md-6">
@@ -41,7 +40,7 @@ if ($student_list_result->num_rows > 0) {
    echo "<tr><th scope=\"row\">".$i."</th>";
    echo "<td>".$row["teacher"]."</td>";   
    echo "<td>".$row["type_lesson"]."</td>"; 
-   echo "<td>".$row["skip_lesson"]."</td></tr>";   
+   echo "<td>".$row["skip_lesson"]."</td></tr>";
    
    
    $i++;
@@ -49,7 +48,24 @@ if ($student_list_result->num_rows > 0) {
 } else {
   echo "Сегодня посещаемость 100%";
 }
-unset($day_skip);
+$student_list_query = "SELECT name FROM students";
+
+$student_list_result = $mysqli->query($student_list_query);
+
+/* получение массива объектов */
+while ($row = $student_list_result->fetch_row()){
+    $total[]=$row["name"];    
+};
+$attendance_list_query = "SELECT DISTINCT * FROM attendance WHERE skip_date='$day_skip'";
+
+$attendance_list_result = $mysqli->query($attendance_list_query);
+
+/* получение массива объектов */
+while ($rowattendance = $attendance_list_result->fetch_row()){
+    $totalattendance[]=$rowattendance["teacher"];    
+};
+$atten=count($total)-count($totalattendance);
+
 //вывести количества дней в месяце
 /*$mysqli->close();
 $month=date("m");
@@ -60,12 +76,41 @@ echo $number;*/
   </tbody>
 </table>
 </div>
+<div class="col-md-6">
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <div id="piechart" style="height: 500px;"></div>
 </div>
 </div>
+</div>
+
+<script>
+google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        var data = google.visualization.arrayToDataTable([
+          ['Task', 'Hours per Day'],
+          ['Присутствовали',     <?echo $atten ?>],
+          ['Отсутствовали',      <?echo count($totalattendance) ?>],
+          
+        ]);
+
+        var options = {
+          title: 'Ежедневная посещаемость'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+      }
+</script>
+
     <!-- Необязательный JavaScript; выберите один из двух! -->
 
     <!-- Вариант 1: пакет Bootstrap с Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+   
 
     <!-- Вариант 2: отдельные JS для Popper и Bootstrap -->
     <!--
