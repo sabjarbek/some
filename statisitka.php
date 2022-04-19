@@ -64,21 +64,80 @@ $attendance_list_result = $mysqli->query($attendance_list_query);
 while ($rowattendance = $attendance_list_result->fetch_row()){
     $totalattendance[]=$rowattendance["teacher"];    
 };
-$atten=count($total)-count($totalattendance);
+if($total and $totalattendance > 0){
+  $atten=count($total)-count($totalattendance);
+}
 
 //вывести количества дней в месяце
-/*$mysqli->close();
-$month=date("m");
-$year=date("Y");
-$number = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-echo $number;*/
-?>    
+?>
+
   </tbody>
 </table>
 </div>
 <div class="col-md-6">
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <div id="piechart" style="height: 500px;"></div>
+</div>
+<div class="col-md-12">
+<?
+$month=date("03");
+$year=date("Y");
+$number = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+$query = "SELECT name FROM students WHERE groupss='10-19АПП'";
+$stmt = $mysqli->prepare($query);
+$stmt->execute();
+
+/* сохранение результата во внутреннем буфере */
+$stmt->store_result();
+
+$volume_students=$stmt->num_rows;
+$result = $mysqli->query($query);
+  if ($result ->num_rows > 0) {
+    // output data of each row
+    while($row = $result ->fetch_assoc()) {
+      $students_array[]=$row["name"];
+    }
+  }
+echo "<table>";
+  echo "<tr>";
+  echo "<td>№</td>";
+  echo "<td>Ф.И.О</td>";
+    for($j=1;$j<$number+1;++$j){
+      echo "<td>".$j."</td>";
+    }
+  echo "</tr>"; 
+  
+  for($i=1;$i<$volume_students+1;$i++){
+    echo "<tr>";
+    echo "<td>".$i."</td>";
+    echo "<td>".$students_array[$i-1]."</td>";
+    $student_name=$students_array[$i-1];
+      for($j=1;$j<$number+1;++$j){
+        
+        $subquery = "SELECT * FROM attendance WHERE (teacher='$student_name' AND skip_date='$year-$month-$j')";
+        $dstmt = $mysqli->prepare($subquery);
+        $dstmt->execute();
+        
+        /* сохранение результата во внутреннем буфере */
+        $dstmt->store_result();        
+        $volume_hours=$dstmt->num_rows;
+        if($volume_hours>0){
+          echo "<td>";
+          echo $volume_hours;
+          echo "</td>";
+        }
+        else{
+          echo "<td></td>";
+        }
+
+      }
+    echo "</tr>";
+  }
+echo "<table>";
+
+$mysqli->close();
+?>   
 </div>
 </div>
 </div>
