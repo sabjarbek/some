@@ -6,8 +6,7 @@
     <!-- Обязательные метатеги -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap CSS -->
+        <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 <title><? echo "Список самых прогуливающих студентов";?></title>
   </head>
@@ -99,15 +98,18 @@ $result = $mysqli->query($query);
       $students_array[]=$row["name"];
     }
   }
-echo "<table>";
+echo "<table class=\"table table-bordered\">";
   echo "<tr>";
-  echo "<td>№</td>";
-  echo "<td>Ф.И.О</td>";
-    for($j=1;$j<$number+1;++$j){
-      echo "<td>".$j."</td>";
-    }
+  echo "<td rowspan=\"2\">№</td>";
+  echo "<td rowspan=\"2\" style=\"text-align:center; vertical-align:middle\">Ф.И.О</td>";
+  echo "<td colspan=\"".$number."\" style=\"text-align:center\">".$month."/".$year."</td>";
+  echo "<td rowspan=\"2\">Количество пропущенных часов</td>"; 
   echo "</tr>"; 
-  
+  echo "<tr>";
+  for($j=1;$j<$number+1;++$j){
+    echo "<td>".$j."</td>";
+  }
+  echo "</tr>";
   for($i=1;$i<$volume_students+1;$i++){
     echo "<tr>";
     echo "<td>".$i."</td>";
@@ -125,15 +127,43 @@ echo "<table>";
         if($volume_hours>0){
           echo "<td>";
           echo $volume_hours;
-          echo "</td>";
+          $summa_hours=$summa_hours+$volume_hours;
+          echo "</td>";          
         }
         else{
           echo "<td></td>";
         }
-
-      }
+           }
+           echo "<td>".$summa_hours."</td>";
+           unset($summa_hours);   
     echo "</tr>";
   }
+  echo "<tr>";
+  echo "<td colspan=\"2\">Количество пропущенных урока</td>";
+  for($m=1;$m<$number+1;++$m){
+  
+    $pubquery = "SELECT * FROM attendance WHERE (type_lesson='10-19АПП' AND skip_date='$year-$month-$m')";
+    $pstmt = $mysqli->prepare($pubquery);
+    $pstmt->execute();    
+    /* сохранение результата во внутреннем буфере */
+    $pstmt->store_result();        
+    $summary_hours=$pstmt->num_rows;
+    if($summary_hours>0){
+      echo "<td>";
+      echo $summary_hours;      
+      echo "</td>";
+               
+    }
+    else{
+      echo "<td>0</td>";
+    }
+    $summ_hours= $summ_hours+$summary_hours;
+    unset($summary_hours);
+    
+  }
+  echo "<td>".$summ_hours."</td>";
+  unset($summ_hours);
+  echo "</tr>";
 echo "<table>";
 
 $mysqli->close();
